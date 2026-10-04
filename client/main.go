@@ -1,8 +1,7 @@
-package main
+package client
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/miekg/dns"
 )
@@ -40,27 +39,4 @@ func queryDNS(domain, server string, qtype uint16) ([]string, error) {
 	}
 
 	return results, nil
-}
-
-func handleA(w dns.ResponseWriter, r *dns.Msg) {
-	question := r.Question[0]
-
-	//logs the dns query, nned to decode data from it later
-	log.Printf("Received query for: %s", question.Name)
-
-	m := new(dns.Msg)
-	m.SetReply(r)
-	m.Authoritative = true
-
-	//returns an empty answer for now
-	w.WriteMsg(m)
-}
-
-func main() {
-	dns.HandleFunc(".", handleA)
-	server := &dns.Server{Addr: ":8053", Net: "udp"}
-	fmt.Println("DNS server running on :8053")
-	if err := server.ListenAndServe(); err != nil {
-		log.Fatalf("Server failed: %v", err)
-	}
 }
