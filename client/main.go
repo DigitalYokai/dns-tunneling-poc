@@ -1,10 +1,18 @@
-package client
+package main
 
 import (
+	"encoding/base32"
 	"fmt"
 
 	"github.com/miekg/dns"
 )
+
+type Chunk struct {
+	ID          int
+	TotalChunks int
+	Position    int
+	Data        string
+}
 
 func queryDNS(domain, server string, qtype uint16) ([]string, error) {
 	m := new(dns.Msg)
@@ -39,4 +47,41 @@ func queryDNS(domain, server string, qtype uint16) ([]string, error) {
 	}
 
 	return results, nil
+}
+
+func encodeBase32(data string) string {
+	encodedString := base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString([]byte(data))
+
+	return encodedString
+}
+
+func createChunks(encodedString string, sessionID int, chunkSize int) []Chunk {
+	totalChunks := (len(encodedString) + chunkSize - 1) / chunkSize
+	chunks := make([]Chunk, 0, totalChunks)
+
+	for i := 0; i < totalChunks; i++ {
+		start := i * chunkSize
+		end := start + chunkSize
+
+		if end > len(encodedString) {
+			end = len(encodedString)
+		}
+
+		newChunk := Chunk{
+			ID:          sessionID,
+			TotalChunks: totalChunks,
+			Position:    i,
+			Data:        encodedString[start:end],
+		}
+
+		chunks = append(chunks, newChunk)
+	}
+
+	return chunks
+}
+
+func main() {
+	dummyText := "hello world"
+
+	fmt.Println(encodeBase32(dummyText))
 }
