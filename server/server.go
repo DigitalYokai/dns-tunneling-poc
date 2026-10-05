@@ -2,6 +2,7 @@ package main
 
 import (
 	"dns-tunnel/server/server/session"
+	"encoding/base32"
 	"log"
 	"strings"
 )
@@ -27,14 +28,23 @@ func (s *Server) handleChunk(newChunk Chunk) {
 
 	if len(currentSession.EncodedData) == currentSession.TotalChunks {
 		// Reassemble and decode
-		data := s.ReassembleSession(currentSession.SessionID)
+		data, err := s.ReassembleSession(currentSession.SessionID)
+
+		if err != nil {
+			log.Printf("Failed to decode session %d: %v",
+				currentSession.SessionID,
+				err,
+			)
+			return
+		}
+
 		log.Printf("Reassembled data: %s", data)
 
 		delete(s.sessions, currentSession.SessionID)
 	}
 }
 
-func (s *Server) ReassembleSession(sessionID int) string {
+func (s *Server) ReassembleSession(sessionID int) (string, error) {
 	var data strings.Builder
 	targetSession := s.sessions[sessionID]
 
@@ -42,5 +52,21 @@ func (s *Server) ReassembleSession(sessionID int) string {
 		data.WriteString(targetSession.EncodedData[i])
 	}
 
-	return data.String()
+	decodedData, err := decodeString32(data.String())
+
+	if err != nil {
+		return "", err
+	}
+
+	return decodedData, nil
+}
+
+func decodeString32(encodedString string) (string, error) {
+	decodedBytes, err := base32.StdEncoding.WithPadding(base32.NoPadding).DecodeString(encodedString)
+
+	if err != nil {
+		return "", err
+	}
+
+	return string(decodedBytes), nil
 }
