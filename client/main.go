@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/base32"
 	"fmt"
+	"log"
 
 	"github.com/miekg/dns"
 )
@@ -21,7 +22,7 @@ func queryDNS(domain, server string, qtype uint16) ([]string, error) {
 
 	c := new(dns.Client)
 	c.Net = "udp"
-	resp, _, err := c.Exchange(m, server+":53")
+	resp, _, err := c.Exchange(m, server)
 
 	if err != nil {
 		return nil, fmt.Errorf("query failed: %v", err)
@@ -94,6 +95,8 @@ func main() {
 	dummyText := "hello world"
 	chunks := createChunks(encodeBase32(dummyText), 1, 8)
 	for _, v := range chunks {
-		fmt.Println(chunkToDomain(v))
+		domain := chunkToDomain(v)
+		queryDNS(domain, "127.0.0.1:8053", dns.TypeA)
+		log.Printf("Data sent: %s, position: %d\n", v.Data, v.Position)
 	}
 }
