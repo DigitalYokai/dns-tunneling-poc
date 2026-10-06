@@ -1,0 +1,62 @@
+
+# INTERNAL PROJECT NOTES
+
+Project: Atlas Migration
+Environment: Development
+Owner: Engineering Team
+Last Updated: 2026-10-05
+
+This document contains synthetic data created exclusively for the
+security laboratory environment.
+
+## Application
+
+Service: atlas-api
+Environment: development
+Internal Host: atlas-api.dev.lab
+Database: atlas_dev
+
+## Test Account
+
+Username: dev-atlas
+Password: LabOnly-Atlas-2026!
+Role: application-developer
+
+## API Configuration
+
+API Endpoint: https://api.dev.lab.internal
+API Key: LAB-ATLAS-7F31C9A2E84D
+Client ID: atlas-development-client
+Client Secret: LAB-CLIENT-4D91F7B2
+
+## Database Configuration
+
+Host: postgres.dev.lab
+Port: 5432
+Database: atlas_dev
+Username: atlas_app
+Password: LabDB-Only-2026!
+SSL Mode: require
+
+## Operational Notes
+
+The Atlas API is currently running in the development environment.
+The database contains synthetic customer records generated for
+security testing. No production credentials or real customer data
+are present in this environment.
+
+Expected security controls:
+
+* Outbound DNS is monitored.
+* DNS queries are logged by the laboratory resolver.
+* Development hosts are isolated from production networks.
+* Credentials contained in this document are intentionally fake.
+
+## Incident Response Test
+
+If this file is recovered during the exercise, the expected response
+is to identify the originating process, determine how the file was
+accessed, inspect DNS activity from the host, and correlate the
+activity with the laboratory DNS server logs.
+
+END OF CONTROLLED TEST DATA
