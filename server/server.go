@@ -3,7 +3,9 @@ package main
 import (
 	"dns-tunnel/server/server/session"
 	"encoding/base32"
+	"fmt"
 	"log"
+	"os"
 	"strings"
 )
 
@@ -38,35 +40,48 @@ func (s *Server) handleChunk(newChunk Chunk) {
 			return
 		}
 
-		log.Printf("Reassembled data: %s", data)
+		fileName := fmt.Sprintf("received%d.txt", currentSession.SessionID)
+		err = os.WriteFile(fileName, data, 0644)
+
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		log.Printf(
+			"Reassembled session %d: wrote %d bytes to %s",
+			currentSession.SessionID,
+			len(data),
+			fileName,
+		)
 
 		delete(s.sessions, currentSession.SessionID)
 	}
 }
 
-func (s *Server) ReassembleSession(sessionID int) (string, error) {
-	var data strings.Builder
+func (s *Server) ReassembleSession(sessionID int) ([]byte, error) {
+	var encodedData strings.Builder
 	targetSession := s.sessions[sessionID]
 
 	for i := 0; i < targetSession.TotalChunks; i++ {
-		data.WriteString(targetSession.EncodedData[i])
+		encodedData.WriteString(targetSession.EncodedData[i])
 	}
 
-	decodedData, err := decodeString32(data.String())
+	decodedData, err := decodeBase32(encodedData.String())
 
 	if err != nil {
-		return "", err
+		return []byte{}, err
 	}
 
 	return decodedData, nil
 }
 
-func decodeString32(encodedString string) (string, error) {
+func decodeBase32(encodedString string) ([]byte, error) {
 	decodedBytes, err := base32.StdEncoding.WithPadding(base32.NoPadding).DecodeString(encodedString)
 
 	if err != nil {
-		return "", err
+		return []byte{}, err
 	}
 
-	return string(decodedBytes), nil
+	return decodedBytes, nil
 }
